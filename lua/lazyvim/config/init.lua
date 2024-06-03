@@ -26,6 +26,9 @@ local defaults = {
     -- Same but for Neovim's news.txt
     neovim = false,
   },
+  ui = {
+    border = "rounded",
+  },
   -- icons used by other plugins
   -- stylua: ignore
   icons = {

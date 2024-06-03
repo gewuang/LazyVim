@@ -58,7 +58,9 @@ return {
     optional = true,
     opts = function()
       Util.on_load("telescope.nvim", function()
-        require("telescope").load_extension("aerial")
+        local telescope = require("telescope")
+        telescope.load_extension("aerial")
+        telescope.load_extension("live_grep_args")
       end)
     end,
     keys = {

@@ -1,5 +1,45 @@
 local Util = require("lazyvim.util")
 
+local function copy_path(state)
+  -- NeoTree is based on [NuiTree](https://github.com/MunifTanjim/nui.nvim/tree/main/lua/nui/tree)
+  -- The node is based on [NuiNode](https://github.com/MunifTanjim/nui.nvim/tree/main/lua/nui/tree#nuitreenode)
+  local node = state.tree:get_node()
+  local filepath = node:get_id()
+  local filename = node.name
+  local modify = vim.fn.fnamemodify
+
+  local results = {
+    filepath,
+    modify(filepath, ":."),
+    modify(filepath, ":~"),
+    filename,
+    modify(filename, ":r"),
+    modify(filename, ":e"),
+  }
+
+  vim.ui.select({
+    "1. Absolute path: " .. results[1],
+    "2. Path relative to CWD: " .. results[2],
+    "3. Path relative to HOME: " .. results[3],
+    "4. Filename: " .. results[4],
+    "5. Filename without extension: " .. results[5],
+    "6. Extension of the filename: " .. results[6],
+  }, { prompt = "Choose to copy to clipboard:" }, function(choice)
+    if choice then
+      local i = tonumber(choice:sub(1, 1))
+      if i then
+        local result = results[i]
+        vim.fn.setreg("+", result)
+        vim.notify("Copied: " .. result)
+      else
+        vim.notify("Invalid selection")
+      end
+    else
+      vim.notify("Selection cancelled")
+    end
+  end)
+end
+
 return {
 
   -- file explorer
@@ -46,7 +86,7 @@ return {
     end,
     init = function()
       if vim.fn.argc(-1) == 1 then
-        local stat = vim.loop.fs_stat(vim.f.argv(0))
+        local stat = vim.loop.fs_stat(vim.fn.argv(0))
         if stat and stat.type == "directory" then
           require("neo-tree")
         end
@@ -63,6 +103,7 @@ return {
       window = {
         mappings = {
           ["<space>"] = "none",
+          ["Y"] = copy_path,
         },
       },
       default_component_configs = {
@@ -127,6 +168,12 @@ return {
             require("telescope").load_extension("fzf")
           end)
         end,
+      },
+      {
+        "nvim-telescope/telescope-live-grep-args.nvim",
+        -- This will not install any breaking changes.
+        -- For major updates, this must be adjusted manually.
+        version = "^1.0.0",
       },
     },
     keys = {
